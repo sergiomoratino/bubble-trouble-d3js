@@ -19,7 +19,7 @@
             ></v-swatches>
           </div>
 
-          This is the default body!
+          Escoge un color
         </slot>
       </section>
 
@@ -40,31 +40,25 @@ let colors = [];
 export default {
   name: "ModalPop",
   components: { VSwatches },
-  props: { colorCircleSave: String, arrayColors: [] },
+  props: { colorCircleSave: String, idCircleSave: Number, arrayColors: Array },
   watch: {
     colorCircleSave: function () {
-      console.log("color cambiado");
     },
+    idCircleSave: function () {},
     arrayColors: function (d) {
-      console.log("color cambiado", d);
-    colorsToArray = JSON.parse(JSON.stringify(d));
-
-    console.log(colorsToArray);
-    
-      console.log("colorrrs", colorsToArray);
+      colorsToArray = JSON.parse(JSON.stringify(d));
       colorsToArray.forEach((element) => {
-        console.log('element',element.color)
         colors.push(element.color);
       });
       // Clean Repeat colors
-      colors = [...new Set(colors)]
-      console.log("colorrrs", colors);
+      colors = [...new Set(colors)];
     },
   },
 
   data() {
     return {
       color: this.colorCircleSave,
+      idCircle: this.idCircleSave,
       swatches: colors,
     };
   },
@@ -72,6 +66,11 @@ export default {
   methods: {
     close() {
       this.$emit("close");
+      //Pass Id Node and New color to chart.vue
+      this.$emit("changeC", {
+        idCircletoChange: this.idCircleSave,
+        newColor: this.color,
+      });
     },
   },
 };

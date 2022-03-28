@@ -1,18 +1,27 @@
 <template>
+  <h1>Colores Utilizados: {{ countColors() }}</h1>
   <div id="my_dataviz"></div>
-  <ModalPop :colorCircleSave="colorCircleSave" :arrayColors="arrayColors" :key="colorCircleSave" v-show="isModalVisible" @close="closeModal" @selectColor="selectColor($event)" />
+  <ModalPop
+    :colorCircleSave="colorCircleSave"
+    :idCircleSave="idCircleSave"
+    :arrayColors="arrayColors"
+    :key="colorCircleSave"
+    v-show="isModalVisible"
+    @close="closeModal"
+    @selectColor="selectColor($event)"
+    @changeC="changeC($event)"
+  />
 </template>
 
 <script>
 import * as d3 from "d3";
 import dataset from "../../public/input.json";
 import colours from "../../public/output.json";
-import ModalPop from "./Modal.vue"
+import ModalPop from "./Modal.vue";
 export default {
-
   name: "PackChart",
   components: {
-      ModalPop
+    ModalPop,
   },
   props: ["bubbleData"],
   data() {
@@ -21,14 +30,20 @@ export default {
       dataset,
       colours,
       isModalVisible: false,
-      colorCircleSave: '#000000',
-      arrayColors: '#000000'
+      colorCircleSave: "#000000",
+      idCircleSave: 0,
+      arrayColors: "#000000",
+      newColor: "#000000",
+      nodes: [],
     };
   },
 
   mounted() {
     this.packChart();
   },
+  /* watch: {
+      this.$refs.modal.close()
+  },*/
   methods: {
     packChart() {
       const pairsBubbles = dataset.pairs;
@@ -45,8 +60,8 @@ export default {
         nodes[i] = { id: nodes[i], name: nodes[i], color: colorNodes[i].color };
       }
 
-      console.log("nodes", nodes);
-      console.log("edges", edges);
+
+      this.nodes = nodes;
 
       let margin = { top: 10, right: 30, bottom: 30, left: 40 },
         width = 800 - margin.left - margin.right,
@@ -58,7 +73,6 @@ export default {
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
       let link = svg
         .selectAll("line")
         .data(edges)
@@ -73,8 +87,8 @@ export default {
         .attr("r", 20)
         .style("fill", "#69b3a2")
         .on("click", (d, dataCircle) => {
-          console.log(dataCircle);
           this.colorCircleSave = dataCircle.color;
+          this.idCircleSave = dataCircle.id;
           this.selectColor();
         });
 
@@ -114,6 +128,9 @@ export default {
           .attr("cy", function (d) {
             return d.y - 6;
           })
+          .attr("id", function (d) {
+            return d.id;
+          })
           .style("fill", function (d) {
             return d.color;
           });
@@ -124,7 +141,29 @@ export default {
     selectColor() {
       this.showModal();
     },
+    changeC(color) {
+      this.newColor = color;
+      let newColorPass = JSON.parse(JSON.stringify(this.newColor));
+      let idCircleChange = newColorPass.idCircletoChange;
+      let colorCircleChange = newColorPass.newColor;
+      d3.selectAll("circle").each(function (d) {
+        if (d.id === idCircleChange) {
+          d3.select(this).style("fill", colorCircleChange);
+          d.color = colorCircleChange;
+        }
+      });
+      return this.countColors();
+    },
 
+    countColors() {
+      let numberOfColors = [];
+      d3.selectAll("circle").each(function (d, i) {
+        numberOfColors[i] = d.color;
+      });
+      numberOfColors = [...new Set(numberOfColors)];
+      numberOfColors = numberOfColors.length;
+      return numberOfColors;
+    },
     declareNumberColor() {
       const dataColours = colours.assignment;
       let nodeColor = [];
@@ -144,6 +183,15 @@ export default {
             break;
           case 3:
             d.color = "#B6FF33";
+            break;
+          case 4:
+            d.color = "#33FFEE";
+            break;
+          case 5:
+            d.color = "3369FF";
+            break;
+          case 6:
+            d.color = "#A033FF";
             break;
         }
       });
