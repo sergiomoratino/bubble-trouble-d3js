@@ -1,18 +1,28 @@
 <template>
   <div id="my_dataviz"></div>
+  <ModalPop :colorCircleSave="colorCircleSave" :arrayColors="arrayColors" :key="colorCircleSave" v-show="isModalVisible" @close="closeModal" @selectColor="selectColor($event)" />
 </template>
 
 <script>
 import * as d3 from "d3";
 import dataset from "../../public/input.json";
-
+import colours from "../../public/output.json";
+import ModalPop from "./Modal.vue"
 export default {
+
   name: "PackChart",
+  components: {
+      ModalPop
+  },
   props: ["bubbleData"],
   data() {
     return {
       msg: "From the Chart Component",
       dataset,
+      colours,
+      isModalVisible: false,
+      colorCircleSave: '#000000',
+      arrayColors: '#000000'
     };
   },
 
@@ -24,6 +34,7 @@ export default {
       const pairsBubbles = dataset.pairs;
       let nodes = [];
       let edges = [];
+      let colorNodes = this.declareNumberColor();
       for (let i = 0; i < pairsBubbles.length; i++) {
         nodes.push(pairsBubbles[i].n1);
         nodes.push(pairsBubbles[i].n2);
@@ -31,7 +42,7 @@ export default {
       }
       nodes = [...new Set(nodes)];
       for (let i = 0; i < nodes.length; i++) {
-        nodes[i] = { id: nodes[i], name: nodes[i] };
+        nodes[i] = { id: nodes[i], name: nodes[i], color: colorNodes[i].color };
       }
 
       console.log("nodes", nodes);
@@ -62,10 +73,10 @@ export default {
         .attr("r", 20)
         .style("fill", "#69b3a2")
         .on("click", (d, dataCircle) => {
-            console.log(dataCircle)
-            this.selectColor();
-         });
-        
+          console.log(dataCircle);
+          this.colorCircleSave = dataCircle.color;
+          this.selectColor();
+        });
 
       let simulation = d3
         .forceSimulation(nodes)
@@ -102,15 +113,49 @@ export default {
           })
           .attr("cy", function (d) {
             return d.y - 6;
+          })
+          .style("fill", function (d) {
+            return d.color;
           });
       }
       return simulation;
     },
 
-    selectColor(){
-        console.log("Seleciona el color");
+    selectColor() {
+      this.showModal();
     },
 
+    declareNumberColor() {
+      const dataColours = colours.assignment;
+      let nodeColor = [];
+      for (let i = 0; i < dataColours.length; i++) {
+        nodeColor.push(dataColours[i]);
+      }
+      nodeColor.forEach((d) => {
+        switch (d.color) {
+          case 0:
+            d.color = "#FF5733";
+            break;
+          case 1:
+            d.color = "#FFC433";
+            break;
+          case 2:
+            d.color = "#FFFE33";
+            break;
+          case 3:
+            d.color = "#B6FF33";
+            break;
+        }
+      });
+      this.arrayColors = nodeColor;
+      return nodeColor;
+    },
+    showModal() {
+      this.isModalVisible = true;
+    },
+    closeModal() {
+      this.isModalVisible = false;
+    },
     output() {
       return this.packChart();
     },
