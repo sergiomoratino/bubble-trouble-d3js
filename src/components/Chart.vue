@@ -60,7 +60,6 @@ export default {
         nodes[i] = { id: nodes[i], name: nodes[i], color: colorNodes[i].color };
       }
 
-
       this.nodes = nodes;
 
       let margin = { top: 10, right: 30, bottom: 30, left: 40 },
@@ -146,15 +145,18 @@ export default {
       let newColorPass = JSON.parse(JSON.stringify(this.newColor));
       let idCircleChange = newColorPass.idCircletoChange;
       let colorCircleChange = newColorPass.newColor;
-      d3.selectAll("circle").each(function (d) {
-        if (d.id === idCircleChange) {
-          d3.select(this).style("fill", colorCircleChange);
-          d.color = colorCircleChange;
-        }
-      });
-      return this.countColors();
+      if (this.checkIfIsDiferentColorAround(idCircleChange, colorCircleChange)) {
+        d3.selectAll("circle").each(function (d) {
+          if (d.id === idCircleChange) {
+            d3.select(this).style("fill", colorCircleChange);
+            d.color = colorCircleChange;
+          }
+        });
+        return this.countColors();
+      }
     },
 
+    // Count total of colors Used
     countColors() {
       let numberOfColors = [];
       d3.selectAll("circle").each(function (d, i) {
@@ -164,6 +166,29 @@ export default {
       numberOfColors = numberOfColors.length;
       return numberOfColors;
     },
+    // Check if color that Bubble around is different
+    checkIfIsDiferentColorAround(idCircle, newColor) {
+      let isDiferent = true;
+      d3.selectAll("circle").each(function (d) {
+        if (d.id === idCircle) {
+          d3.selectAll("line").each(function (e) {
+            if (d.id == e.source.index) {
+              if (newColor === e.target.color) {
+                alert("Este color está utilizado en una conexión");
+                isDiferent = false;
+              }
+            }
+            if (d.id == e.target.index) {
+              if (newColor === e.source.color) {
+                isDiferent = false;
+              }
+            }
+          });
+        }
+      });
+      return isDiferent;
+    },
+    // Insert Color Code to number
     declareNumberColor() {
       const dataColours = colours.assignment;
       let nodeColor = [];
